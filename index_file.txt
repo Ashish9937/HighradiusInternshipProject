@@ -1,0 +1,1190 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>HRC Project</title>
+<script type="text/javascript">
+hrc = {};
+hrc.util = {};
+</script>
+<script type="text/javascript" src="static/extjs/ext-all-6.0.2.js"> </script>
+<script type="text/javascript" src="static/js/hrc.js"> </script>
+<script type="text/javascript" src="static/js/util.js"> </script>
+<link rel="stylesheet" type="text/css" href="static/extjs/theme-triton-all.css" />
+<link rel="shortcut icon" href="static/extjs/images/favicon.ico" type="image/x-icon" />
+</head>
+<body>
+
+<img src="https://info.highradius.com/hubfs/highradius-logo.svg" align="left" width='300' heigth=100/>
+<img src="http://3.bp.blogspot.com/-6jiRz0Bdth8/ThY4zDx-AuI/AAAAAAAAAgc/UiSt-fTUP9o/s1600/abc_logo_red_black.gif" align="center" height=90 width=250   hspace="300" />
+
+
+<script type="text/javascript">
+
+/**
+ * 
+ */
+ Ext.ns('tab');
+
+ Ext.application({
+		name : 'Fiddle',
+		launch : function() {
+			tab.abc();
+		},
+	});
+ 
+ 
+ function getJsonData(gridPanel)
+ {
+	 var storeData=gridPanel.getSelectionModel().getSelected();
+	 var invoice=[];
+	 for (var i=0;i<storeData.length;i++)
+		 {
+		 invoice.push(storeData.items[i].data);
+		 }
+	 return invoice;
+ }
+ 
+ 
+	tab.abc = function() {
+		var itemsPerPage = 13;
+		Ext.define('Invoice', {
+			extend : 'Ext.data.Model',
+			fields : ['id','accountid','documentnumbernorm','companycode','fiscalyear','branch','customernumbernorm','fkcustomermapid','documentdatenorm','baselinedatenorm',
+		    	'duedatenorm','invoicenumbernorm','openamountnorm','paymentterms','clearingdatenorm','isOpen','ordertype','orderdate','businessarea','shipdate','jobid',
+		    	'taxamt','currentdisputamount','shipto', 'documentid','documentdate','actualopenamount','duedate','invoiceage','postingkey','retainageAmount','strategyid','currency',
+		    	 'debitcreditindicator', 'validopenamount','customername'],
+		});
+		var all_invoice = Ext.create('Ext.data.Store', {
+			model : 'Invoice',
+			autoLoad : {start:0,limit:25},
+			//pageSize:10,
+			proxy : {
+				type : 'ajax',
+				url : 'getData.do',
+				actionMethods : {
+					read : 'POST'
+				},
+				reader : {
+					rootProperty : 'rows',
+					totalProperty : 'results',
+					keepRawData : true
+				}
+			}
+
+		});
+	/*	all_invoice.load({
+        	 param:{
+        		 start:1,
+        		 limit:10,
+        	 }
+         });*/
+		var open_invoice = Ext.create('Ext.data.Store', {
+			model : 'Invoice',
+			autoLoad : true,
+			//pageSize: 10,
+			proxy : {
+				type : 'ajax',
+				url : 'get.do',
+				actionMethods : {
+					read : 'POST'
+				},
+				reader : {
+					rootProperty : 'rows',
+					totalProperty : 'results',
+					keepRawData : true
+				}
+			},
+			filters : [ {
+				property : 'isOpen',
+				value : 1
+			} ]
+		});
+		/*open_invoice.load({
+       	 param:{
+       		 start:1,
+       		 limit:10,
+       	 }
+        });*/
+		var close_invoice = Ext.create('Ext.data.Store', {
+			model : 'Invoice',
+			autoLoad : true,
+		//	pageSize:10,
+			proxy : {
+				type : 'ajax',
+				url : 'Data.do',
+				actionMethods : {
+					read : 'POST'
+				},
+				reader : {
+					rootProperty : 'rows',
+					totalProperty : 'results',
+					keepRawData : true
+				}
+			},
+			filters : [ {
+				property : 'isOpen',
+				value : 0
+			} ]
+		});
+
+	/*	close_invoice.load({
+       	 param:{
+       		 start:1,
+       		 limit:10,
+       	 }
+        });*/
+
+
+
+     var allGrid=   Ext.create('Ext.grid.Panel', {
+     id:'all_invoices_grid_panel',
+ title:'All Invoices',
+         store: all_invoice,
+         columns: [{
+             text: 'ID',
+             dataIndex: 'id'
+         },
+         {
+ 			text : 'Account Id',
+ 			dataIndex : 'accountid',
+ 			filter : {
+ 				type : 'integer'
+ 			}
+ 		}, {
+ 			text : 'Document Number Norm',
+ 			dataIndex : 'documentnumbernorm'
+
+ 		}, {
+ 			text : 'Company Code',
+ 			dataIndex : 'companycode'
+ 		},
+ 		{
+ 			text : 'Fiscal Year',
+ 			dataIndex : 'fiscalyear'
+ 		}, {
+ 			text : 'Branch',
+ 			dataIndex : 'branch'
+ 		}, {
+ 			text : 'Customer Number Norm',
+ 			dataIndex : 'customernumbernorm',
+ 		}, {
+ 			text : 'Fk Customer Map Id',
+ 			dataIndex : 'fkcustomermapid'
+
+ 		}, {
+ 			text : 'Document Date Norm',
+ 			dataIndex : 'documentdatenorm',
+ 			renderer : function(v){
+ 				var date = new Date(v);
+ 				return date.toLocaleDateString();	
+ 			}
+ 		}, {
+ 			text : 'Baseline Date Norm',
+ 			dataIndex : 'baselinedatenorm',
+ 			renderer : function(v){
+ 				var date = new Date(v);
+ 				return date.toLocaleDateString();
+ 				
+ 			}
+ 		}, {
+ 			text : 'Due Date Norm',
+ 			dataIndex : 'duedatenorm',
+ 			renderer : function(v){
+ 				var date = new Date(v);
+ 				return date.toLocaleDateString();
+ 				
+ 			}
+ 		}, {
+ 			text : 'Invoice Number Norm',
+ 			dataIndex : 'invoicenumbernorm',
+ 		}, {
+ 			text : 'Open Amount Norm',
+ 			dataIndex : 'openamountnorm'
+
+ 		}, {
+ 			text : 'Payment Terms',	
+ 			dataIndex : 'paymentterms'
+ 		}, {
+ 			text : 'Clearing Date Norm',
+ 			dataIndex : 'clearingdatenorm'
+ 		}, {
+ 			text : 'Isopen',
+ 			dataIndex : 'isOpen'
+
+ 		}, {
+ 			text : 'Order Type',
+ 			dataIndex : 'ordertype'
+ 		}, {
+ 			text : 'Order Date',
+ 			dataIndex : 'orderdate'
+ 		},
+
+ 		{
+ 			text : 'Business Area',
+ 			dataIndex : 'businessarea'
+ 		}, {
+ 			text : 'Ship Date',
+ 			dataIndex : 'shipdate',
+ 		}, {
+ 			text : 'Job Id',dataIndex : 'jobid'
+
+ 		}, {
+ 			text : 'Tax Amt',
+ 			dataIndex : 'taxamt'
+ 		},
+ 		{
+ 			text : 'Current Dispute Amount',dataIndex : 'currentdisputamount'
+ 		},
+
+ 		{
+ 			text : 'Ship To',
+ 			dataIndex : 'shipto'
+ 		}, {
+ 			text : 'Document Id',dataIndex : 'documentid',
+ 		},
+
+ 		{
+ 			text : 'Document Date',dataIndex : 'documentdate',
+ 			renderer : function(v){
+ 				var date = new Date(v);
+ 				return date.toLocaleDateString();
+ 				
+ 			}
+
+ 		},
+
+ 		{
+ 			text : 'Actual Open Amount',
+ 			dataIndex : 'actualopenamount'
+ 		}, {
+ 			text : 'Due Date',
+ 			dataIndex : 'dueDate',
+ 			renderer : function(v){
+ 				var date = new Date(v);
+ 				return date.toLocaleDateString();
+ 				
+ 			}
+ 		},
+
+ 		{
+ 			text : 'Invoice Age',	dataIndex : 'invoiceage'
+ 		}, {
+ 			text : 'Isvalid Dispute',	dataIndex : 'isvaliddispute',
+ 		},  {
+ 			text : 'Retainage Amount',	
+ 			dataIndex : 'retainageamount'
+
+ 		},
+ 		
+ 		{
+ 			text : 'Posting Key',dataIndex : 'postingkey'
+ 		},
+
+ 		{
+ 			text : 'Fk Strategy Id',	dataIndex : 'strategyid'
+ 		}, {
+ 			text : 'Currency',	dataIndex : 'currency'
+ 		},
+
+ 		{
+ 			text : 'Debit Credit Indicator',	dataIndex : 'debitcreditindicator',
+ 		},
+
+ 		{
+ 			text : 'Valid Open Amount',	
+ 			dataIndex : 'validopenamount'
+
+ 		},
+
+ 		{
+ 			text : 'Customer Name',
+ 			dataIndex : 'customername'
+ 		}],
+    
+ 		selModel: 'checkboxmodel',
+     listeners: {
+			select: function() {
+				let count = this.getSelectionModel().getCount();
+				let editButton = Ext.ComponentQuery.query("#all_invoices_edit_button")[0];
+				console.log(count);
+				if(count == 1) {
+					editButton.enable();
+				} else if(count == 0 || count > 1) {
+					editButton.disable();
+				}
+			},
+		
+			deselect: function() {
+				let count = this.getSelectionModel().getCount();
+				let editButton = Ext.ComponentQuery.query("#all_invoices_edit_button")[0];
+				console.log(count);
+				if(count == 1) {
+					editButton.enable();
+				} else if(count == 0 || count > 1) {
+					editButton.disable();
+				}
+			}
+		},
+   
+ dockedItems:[{
+ xtype: 'toolbar',
+ itemId:'all_invoices_toolbar',
+    dock: 'top',
+    items: [{
+        xtype: 'button',
+        disabled:true,
+        text: 'Edit',
+        itemId:'all_invoices_edit_button',
+        handler: function(){
+            
+               var grid = Ext.getCmp('all_invoices_grid_panel')
+               console.log(grid);
+               var jobId = grid.getSelectionModel().getSelection()[0].get('jobid')
+               console.log(jobId);
+               var shipTo = grid.getSelectionModel().getSelection()[0].get('shipto')
+               console.log(shipTo);
+            var id = grid.getSelectionModel().getSelection()[0].get('id')
+         
+               Ext.create('Ext.window.Window',{
+               renderTo:Ext.getBody(),
+               title:'edit',
+               modal:true,
+               autoshow:true,
+               items:[{
+               xtype:'form',
+               id:'editform',
+               bodypadding:5,
+               defaultType:'textfield',
+               items:[{
+               name:'jobid',
+               fieldLabel:'jobid',
+               value:jobId,
+               id:'jobId'
+               },{
+               name:'shipto',
+               fieldLabel:'shipto',
+               value:grid.getSelectionModel().getSelection()[0].get('shipto'),
+               id:'shipto'
+               }]
+               }],
+               buttons:[{
+               text:'save',
+               handler: function(){
+               var editData = Ext.getCmp('editform').getForm().getValues();
+               console.log(editData);
+               Ext.Ajax.request({
+                          url: 'update',
+                          method: 'POST',
+                          params:
+                          {
+                          id:id,
+                          jobId:editData.jobid,
+                          shipTo:editData.shipto
+                          },
+                          success: function (response) {	
+                          all_invoice.load();
+                          open_invoice.load();
+                          close_invoice.load();
+                          },
+                          failure: function (response) {
+                              Ext.Msg.alert('Status', 'Request Failed.');
+
+                          }
+                      });
+           
+                 this.up('window').close()	
+               },
+               
+               },{
+               text:'cancel',
+               handler:function(){
+               this.up('window').close()
+               }
+               }],
+               }).show();
+
+               }
+             }, {
+        xtype: 'button',
+        text: 'Predict',
+        itemId:'all_invoices_predit_button',
+        
+        listeners:{
+        	click:function(button){
+        		var mlRequestJSON={};
+        		mlRequestJSON.identificationId='<id>';
+        		var gridPanel=Ext.ComponentQuery.query('#all_invoice_grid_panel')[0];
+        		mlRequestJSON.data=getJsonData(gridPanel);
+        		Ext.Ajax.request({
+        			url:'url',
+        			method:'POST',
+        			headers:{
+        				'Content-Type':'application/text',
+        				'Access-Control-Allow-Origin':'*'
+        				
+        			},
+        			params:{
+        				data:JSON.stringify(mlRequestJSON),
+        			},
+        			success: function(result,request){
+        				
+        			},
+        			failure:function(result,request){
+        				Ext.Msg.alert('Warning','Error');
+        			}
+        		});
+        		
+        	}
+        }
+        
+             
+        
+    },'->',{
+ text:'Advanced Search',
+ itemId:'all_invoices_advancesearch_button',
+	 handler : function() {					
+			
+	       if (x % 2 == 0) {
+	       
+			  fo.show();	
+				x = 1;
+			} else {
+				fo.hide();
+				x = 0;
+			}
+		}
+
+ }]
+ },{
+         xtype: 'pagingtoolbar',
+         store: all_invoice,
+         dock:'top',
+         displayInfo: true
+     },{
+     xtype: 'pagingtoolbar',
+         store: all_invoice,
+         dock:'bottom',
+         displayInfo: true
+     }],
+     });
+        
+        
+        var x=0;
+        var fo=Ext.create('Ext.form.Panel', {
+
+       	    xtype: 'form-hboxlayout',
+       	    itemId:'all_invoices_advancesearch_panel',
+            hidden:true,
+       	    title: 'search',
+       	    bodyPadding: '5 5 0',
+       	    width: 600,
+            
+       	    style:{
+       	    	marginLeft:'auto',
+       	    	marginRight:'auto'
+       	    },
+       	  
+
+       	    defaults: {
+       	        border: false,
+       	        xtype: 'panel',
+       	        flex: 1,
+       	        layout: 'anchor'
+       	    },
+
+       	    layout: 'hbox',
+
+       	    items: [{
+       	        items: [{
+       	        	xtype: 'datefield',
+       	            fieldLabel: 'Due Date',
+       	             itemId:'all_invoices_due_date',
+       	            name: 'Date'
+       	        }, {
+       	            xtype:'numberfield',
+       	            fieldLabel: 'Actual Open Amount',
+       	             itemId:'all_invoices_actual_open_account',
+       	            anchor: '-5',
+       	            minValue:0,
+       	            name: 'amount'
+       	        }]
+       	    }, {
+       	        items: [{
+       	        	xtype: 'numberfield',
+       	            fieldLabel: 'Fiscal Year',
+       	             itemId:'all_invoices_fiscal_year',
+       	            name: 'year',
+       	            minValue: 1997,
+                    maxValue: 2019
+       	        },{
+       	            xtype: 'textfield',
+       	            fieldLabel: 'Customer Name',
+       	             itemId:'all_invoices_customer_name',
+       	            anchor: '100%',
+       	            name: 'name'
+       	            //vtype: 'email'
+       	        }]
+       	    }],
+
+       	    buttons: ['->', {
+       	        text: 'Search',
+       	        itemId:'all_invoices_search_button',
+       	        handler:function(){
+       	        	
+       	        	
+       	        }
+       	        
+       	    }, {
+       	        text: 'Clear',
+       	        itemId:' all_invoices_clear_advanceSearch',
+       	    }],
+       	    
+       	    renderTo: Ext.getBody()
+       	});
+     
+  var openGrid=   Ext.create('Ext.grid.Panel', {
+ id:'open_invoices_grid_panel',   
+ store: open_invoice,
+         title:'Open Invoices',
+         
+         columns: [{
+             text: 'ID',
+             dataIndex: 'id'
+         },
+         {
+ 			text : 'Account Id',
+ 			dataIndex : 'accountid',
+ 			filter : {
+ 				type : 'integer'
+ 			}
+ 		}, {
+ 			text : 'Document Number Norm',
+ 			dataIndex : 'documentnumbernorm'
+
+ 		}, {
+ 			text : 'Company Code',
+ 			dataIndex : 'companycode'
+ 		},
+ 		{
+ 			text : 'Fiscal Year',
+ 			dataIndex : 'fiscalyear'
+ 		}, {
+ 			text : 'Branch',
+ 			dataIndex : 'branch'
+ 		}, {
+ 			text : 'Customer Number Norm',
+ 			dataIndex : 'customernumbernorm',
+ 		}, {
+ 			text : 'Fk Customer Map Id',
+ 			dataIndex : 'fkcustomermapid'
+
+ 		}, {
+ 			text : 'Document Date Norm',
+ 			dataIndex : 'documentdatenorm',
+ 			renderer : function(v){
+ 				var date = new Date(v);
+ 				return date.toLocaleDateString();	
+ 			}
+ 		}, {
+ 			text : 'Baseline Date Norm',
+ 			dataIndex : 'baselinedatenorm',
+ 			renderer : function(v){
+ 				var date = new Date(v);
+ 				return date.toLocaleDateString();
+ 				
+ 			}
+ 		}, {
+ 			text : 'Due Date Norm',
+ 			dataIndex : 'duedatenorm',
+ 			renderer : function(v){
+ 				var date = new Date(v);
+ 				return date.toLocaleDateString();
+ 				
+ 			}
+ 		}, {
+ 			text : 'Invoice Number Norm',
+ 			dataIndex : 'invoicenumbernorm',
+ 		}, {
+ 			text : 'Open Amount Norm',
+ 			dataIndex : 'openamountnorm'
+
+ 		}, {
+ 			text : 'Payment Terms',	
+ 			dataIndex : 'paymentterms'
+ 		}, {
+ 			text : 'Clearing Date Norm',
+ 			dataIndex : 'clearingdatenorm'
+ 		}, {
+ 			text : 'Isopen',
+ 			dataIndex : 'isOpen'
+
+ 		}, {
+ 			text : 'Order Type',
+ 			dataIndex : 'ordertype'
+ 		}, {
+ 			text : 'Order Date',
+ 			dataIndex : 'orderdate'
+ 		},
+
+ 		{
+ 			text : 'Business Area',
+ 			dataIndex : 'businessarea'
+ 		}, {
+ 			text : 'Ship Date',
+ 			dataIndex : 'shipdate',
+ 		}, {
+ 			text : 'Job Id',dataIndex : 'jobid'
+
+ 		}, {
+ 			text : 'Tax Amt',
+ 			dataIndex : 'taxamt'
+ 		},
+ 		{
+ 			text : 'Current Dispute Amount',dataIndex : 'currentdisputamount'
+ 		},
+
+ 		{
+ 			text : 'Ship To',
+ 			dataIndex : 'shipto'
+ 		}, {
+ 			text : 'Document Id',dataIndex : 'documentid',
+ 		},
+
+ 		{
+ 			text : 'Document Date',dataIndex : 'documentdate',
+ 			renderer : function(v){
+ 				var date = new Date(v);
+ 				return date.toLocaleDateString();
+ 				
+ 			}
+
+ 		},
+
+ 		{
+ 			text : 'Actual Open Amount',
+ 			dataIndex : 'actualopenamount'
+ 		}, {
+ 			text : 'Due Date',
+ 			dataIndex : 'dueDate',
+ 			renderer : function(v){
+ 				var date = new Date(v);
+ 				return date.toLocaleDateString();
+ 				
+ 			}
+ 		},
+
+ 		{
+ 			text : 'Invoice Age',	dataIndex : 'invoiceage'
+ 		}, {
+ 			text : 'Isvalid Dispute',	dataIndex : 'isvaliddispute',
+ 		},  {
+ 			text : 'Retainage Amount',	
+ 			dataIndex : 'retainageamount'
+
+ 		},
+ 		
+ 		{
+ 			text : 'Posting Key',dataIndex : 'postingkey'
+ 		},
+
+ 		{
+ 			text : 'Fk Strategy Id',	dataIndex : 'strategyid'
+ 		}, {
+ 			text : 'Currency',	dataIndex : 'currency'
+ 		},
+
+ 		{
+ 			text : 'Debit Credit Indicator',	dataIndex : 'debitcreditindicator',
+ 		},
+
+ 		{
+ 			text : 'Valid Open Amount',	
+ 			dataIndex : 'validopenamount'
+
+ 		},
+
+ 		{
+ 			text : 'Customer Name',
+ 			dataIndex : 'customername'
+ 		}],
+ 		
+ 		
+ 		selModel: {
+ 			mode: 'SIMPLE',
+ 		    checkOnly: 'true',
+ 		    allowDeselect: true,  
+ 		    injectCheckbox: 'first',
+ 		},
+ 		selType: 'checkboxmodel',
+     listeners: {
+			select: function() {
+				let count = this.getSelectionModel().getCount();
+				let editButton = Ext.ComponentQuery.query("#open_invoices_edit_button")[0];
+				console.log(count);
+				if(count == 1) {
+					editButton.enable();
+				} else if(count == 0 || count > 1) {
+					editButton.disable();
+				}
+			},
+		
+			deselect: function() {
+				let count = this.getSelectionModel().getCount();
+				let editButton = Ext.ComponentQuery.query("#open_invoices_edit_button")[0];
+				console.log(count);
+				if(count == 1) {
+					editButton.enable();
+				} else if(count == 0 || count > 1) {
+					editButton.disable();
+				}
+			}
+		},
+
+  dockedItems:[{
+  xtype: 'toolbar',
+    dock: 'top',
+    itemId:'open_invoices_toolbar',
+    items: [{
+        xtype: 'button',
+        disabled:true,
+        text: 'Edit',        
+        itemId:'open_invoices_edit_button',
+       handler: function(){
+            
+               var grid1 = Ext.getCmp('open_invoices_grid_panel')
+               console.log(grid1);
+               var jobId = grid1.getSelectionModel().getSelection()[0].get('jobid')
+               console.log(jobId);
+               var shipTo = grid1.getSelectionModel().getSelection()[0].get('shipto')
+               console.log(shipTo);
+            var id = grid1.getSelectionModel().getSelection()[0].get('id')
+         
+               Ext.create('Ext.window.Window',{
+               renderTo:Ext.getBody(),
+               title:'edit',
+               modal:true,
+               autoshow:true,
+               items:[{
+               xtype:'form',
+               id:'editform1',
+               bodypadding:5,
+               defaultType:'textfield',
+               items:[{
+               name:'job Id',
+               fieldLabel:'jobid',
+               value:grid1.getSelectionModel().getSelection()[0].get('jobid'),
+               id:'jobid'
+               },{
+               name:'ship To',
+               fieldLabel:'shipto',
+               value:grid1.getSelectionModel().getSelection()[0].get('shipto'),
+               id:'shipto'
+               }]
+               }],
+               buttons:[{
+               text:'save',
+               handler: function(){
+               var editData1 = Ext.getCmp('editform1').getForm().getValues();
+               Ext.Ajax.request({
+                          url: 'update',
+                          method: 'POST',
+                          params:
+                          {
+                          id:id,
+                              jobId:editData1.jobId,
+                           shipTo:editData1.shipTo
+                          },
+                          success: function (response) {
+                          all_invoice.reload();
+                          open_invoice.reload();
+                          close_invoice.reload();
+                          },
+                          failure: function (response) {
+                              Ext.Msg.alert('Status', 'Request Failed.');
+
+                          }
+                      });
+           
+                 this.up('window').close()	
+               },
+               
+               },{
+               text:'cancel',
+               handler:function(){
+               this.up('window').close()
+               }
+               }],
+               }).show();
+
+               }
+             },{
+        xtype: 'button',
+        text: 'Predict',
+       itemId:'open_invoices_predit_button',
+       
+       listeners:{
+       	click:function(button){
+       		var mlRequestJSON={};
+       		mlRequestJSON.id='1630122';
+       		var gridPanel=Ext.ComponentQuery.query('#open_invoices_toolbar')[0];
+       		mlRequestJSON.data=getJsonData(gridPanel);
+       		Ext.Ajax.request({
+       			url:'http://127.0.0.1:5000/predict',
+       			method:'POST',
+       			headers:{
+       				'Content-Type':'application/text',
+       				'Access-Control-Allow-Origin':'*'
+       				
+       			},
+       			params:{
+       				data:JSON.stringify(mlRequestJSON),
+       			},
+       			success: function(result,request){
+       				
+       			},
+       			failure:function(result,request){
+       				Ext.Msg.alert('Warning','Error');
+       			}
+       		});
+       		
+       	}
+       },
+        
+       
+    },'->',{
+  text:'Advanced Search',
+  itemId:'open_invoices_advancesearch_button'
+  }]
+  },{
+             xtype: 'pagingtoolbar',
+             store: open_invoice,
+             dock:'top',
+             displayInfo: true
+         },{
+         xtype: 'pagingtoolbar',
+             store: open_invoice,
+             dock:'bottom',
+             displayInfo: true
+         }],
+     });
+  
+  
+  var close=   Ext.create('Ext.grid.Panel', {
+ id:'closed_invoices_grid_panel',
+ store: close_invoice,
+      
+      title:'Closed invoices',
+      columns: [{
+          text: 'ID',
+          dataIndex: 'id'
+      },
+      {
+			text : 'Account Id',
+			dataIndex : 'accountid',
+			filter : {
+				type : 'integer'
+			}
+		}, {
+			text : 'Document Number Norm',
+			dataIndex : 'documentnumbernorm'
+
+		}, {
+			text : 'Company Code',
+			dataIndex : 'companycode'
+		},
+		{
+			text : 'Fiscal Year',
+			dataIndex : 'fiscalyear'
+		}, {
+			text : 'Branch',
+			dataIndex : 'branch'
+		}, {
+			text : 'Customer Number Norm',
+			dataIndex : 'customernumbernorm',
+		}, {
+			text : 'Fk Customer Map Id',
+			dataIndex : 'fkcustomermapid'
+
+		}, {
+			text : 'Document Date Norm',
+			dataIndex : 'documentdatenorm',
+			renderer : function(v){
+				var date = new Date(v);
+				return date.toLocaleDateString();	
+			}
+		}, {
+			text : 'Baseline Date Norm',
+			dataIndex : 'baselinedatenorm',
+			renderer : function(v){
+				var date = new Date(v);
+				return date.toLocaleDateString();
+				
+			}
+		}, {
+			text : 'Due Date Norm',
+			dataIndex : 'duedatenorm',
+			renderer : function(v){
+				var date = new Date(v);
+				return date.toLocaleDateString();
+				
+			}
+		}, {
+			text : 'Invoice Number Norm',
+			dataIndex : 'invoicenumbernorm',
+		}, {
+			text : 'Open Amount Norm',
+			dataIndex : 'openamountnorm'
+
+		}, {
+			text : 'Payment Terms',	
+			dataIndex : 'paymentterms'
+		}, {
+			text : 'Clearing Date Norm',
+			dataIndex : 'clearingdatenorm'
+		}, {
+			text : 'Isopen',
+			dataIndex : 'isOpen'
+
+		}, {
+			text : 'Order Type',
+			dataIndex : 'ordertype'
+		}, {
+			text : 'Order Date',
+			dataIndex : 'orderdate'
+		},
+
+		{
+			text : 'Business Area',
+			dataIndex : 'businessarea'
+		}, {
+			text : 'Ship Date',
+			dataIndex : 'shipdate',
+		}, {
+			text : 'Job Id',dataIndex : 'jobid'
+
+		}, {
+			text : 'Tax Amt',
+			dataIndex : 'taxamt'
+		},
+		{
+			text : 'Current Dispute Amount',dataIndex : 'currentdisputamount'
+		},
+
+		{
+			text : 'Ship To',
+			dataIndex : 'shipto'
+		}, {
+			text : 'Document Id',dataIndex : 'documentid',
+		},
+
+		{
+			text : 'Document Date',dataIndex : 'documentdate',
+			renderer : function(v){
+				var date = new Date(v);
+				return date.toLocaleDateString();
+				
+			}
+
+		},
+
+		{
+			text : 'Actual Open Amount',
+			dataIndex : 'actualopenamount'
+		}, {
+			text : 'Due Date',
+			dataIndex : 'dueDate',
+			renderer : function(v){
+				var date = new Date(v);
+				return date.toLocaleDateString();
+				
+			}
+		},
+
+		{
+			text : 'Invoice Age',	dataIndex : 'invoiceage'
+		}, {
+			text : 'Isvalid Dispute',	dataIndex : 'isvaliddispute',
+		},  {
+			text : 'Retainage Amount',	
+			dataIndex : 'retainageamount'
+
+		},
+		
+		{
+			text : 'Posting Key',dataIndex : 'postingkey'
+		},
+
+		{
+			text : 'Fk Strategy Id',	dataIndex : 'strategyid'
+		}, {
+			text : 'Currency',	dataIndex : 'currency'
+		},
+
+		{
+			text : 'Debit Credit Indicator',	dataIndex : 'debitcreditindicator',
+		},
+
+		{
+			text : 'Valid Open Amount',	
+			dataIndex : 'validopenamount'
+
+		},
+
+		{
+			text : 'Customer Name',
+			dataIndex : 'customername'
+		}],
+  
+		selModel: 'checkboxmodel',
+  listeners: {
+		select: function() {
+			let count = this.getSelectionModel().getCount();
+			let editButton = Ext.ComponentQuery.query("#closed_invoices_edit_button")[0];
+			console.log(count);
+			if(count == 1) {
+				editButton.enable();
+			} else if(count == 0 || count > 1) {
+				editButton.disable();
+			}
+		},
+	
+		deselect: function() {
+			let count = this.getSelectionModel().getCount();
+			let editButton = Ext.ComponentQuery.query("#closed_invoices_edit_button")[0];
+			console.log(count);
+			if(count == 1) {
+				editButton.enable();
+			} else if(count == 0 || count > 1) {
+				editButton.disable();
+			}
+		}
+	},
+  dockedItems:[{
+  xtype: 'toolbar',
+  itemId:'closed_invoices_toolbar',
+    dock: 'top',
+    items: [{
+        xtype: 'button',
+        disabled:true,
+        text: 'Edit',
+        itemId:'closed_invoices_edit_button',
+        
+       handler: function(){
+            
+               var grid2 = Ext.getCmp('closed_invoices_grid_panel')
+               console.log(grid2);
+               var jobId = grid2.getSelectionModel().getSelection()[0].get('jobid')
+               console.log(jobId);
+               var shipTo = grid2.getSelectionModel().getSelection()[0].get('shipto')
+               console.log(shipTo);
+               var id = grid2.getSelectionModel().getSelection()[0].get('id')
+         
+               Ext.create('Ext.window.Window',{
+               renderTo:Ext.getBody(),
+               title:'edit',
+               modal:true,
+               autoshow:true,
+               items:[{
+               xtype:'form',
+               id:'editform',
+               bodypadding:5,
+               defaultType:'textfield',
+               items:[{
+               name:'jobid',
+               fieldLabel:'jobid',
+               value:grid2.getSelectionModel().getSelection()[0].get('jobid'),
+               id:'jobid'
+               },{
+               name:'shipto',
+               fieldLabel:'shipto',
+               value:grid2.getSelectionModel().getSelection()[0].get('shipto'),
+               id:'shipto'
+               }]
+               }],
+               buttons:[{
+               text:'save',
+               handler: function(){
+               var editData = Ext.getCmp('editform').getForm().getValues();
+               Ext.Ajax.request({
+                          url: 'update',
+                          method: 'POST',
+                          params:
+                          {
+                          id:id,
+                              jobId:editData.jobId,
+                           shipTo:editData.shipTo
+                          },
+                          success: function (response) {	
+                          all_invoice.reload();
+                          open_invoice.reload();
+                          close_invoice.reload();
+                          },
+                          failure: function (response) {
+                              Ext.Msg.alert('Status', 'Request Failed.');
+
+                          }
+                      });
+           
+                 this.up('window').close()	
+               },
+               
+               },{
+               text:'cancel',
+               handler:function(){
+               this.up('window').close()
+               }
+               }],
+               }).show();
+
+               }
+             },
+        '->',{
+  text:'Advanced Search',
+  itemId:'closed_invoices_advancesearch_button'
+  }]
+  },
+  {   
+          xtype: 'pagingtoolbar',
+          store: close_invoice,
+          dock:'top', 
+          displayInfo: true
+      },{
+      xtype: 'pagingtoolbar',
+          store: close_invoice,
+          dock:'bottom',
+          displayInfo: true
+      }]
+  
+
+ });
+  
+
+  var allTab = Ext.create('Ext.tab.Panel', {
+ renderTo: Ext.getBody(),
+ items: [allGrid,openGrid,close]
+ });
+  Ext.create('Ext.Panel', {
+
+ title: 'Invoices',
+ id: 'root_invoices_tabpanel',
+ items:[allTab],
+ renderTo : Ext.getBody()
+ });
+
+ }
+ </script>
+ <div 
+style="cursor: pointer;"
+tabindex="1"
+
+>
+<a href="https://www.highradius.com/privacy-policy/">
+Privacy Policy &copy;2019HighRadius Corporation.All right reserved
+</a>
+</div>
+ 
+ </body>
+ </html>
